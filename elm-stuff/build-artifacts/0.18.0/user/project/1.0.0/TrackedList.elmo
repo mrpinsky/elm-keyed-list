@@ -1,0 +1,85 @@
+var _user$project$TrackedList$value = function (_p0) {
+	var _p1 = _p0;
+	return _p1._1;
+};
+var _user$project$TrackedList$tracker = function (_p2) {
+	var _p3 = _p2;
+	return _p3._0;
+};
+var _user$project$TrackedList$toList = function (_p4) {
+	var _p5 = _p4;
+	var helper = function (_p6) {
+		var _p7 = _p6;
+		return _p7._1;
+	};
+	return A2(_elm_lang$core$List$map, helper, _p5._1);
+};
+var _user$project$TrackedList$length = function (_p8) {
+	var _p9 = _p8;
+	return _elm_lang$core$List$length(_p9._1);
+};
+var _user$project$TrackedList$isEmpty = function (_p10) {
+	var _p11 = _p10;
+	return _elm_lang$core$List$isEmpty(_p11._1);
+};
+var _user$project$TrackedList$TrackedList = F2(
+	function (a, b) {
+		return {ctor: 'TrackedList', _0: a, _1: b};
+	});
+var _user$project$TrackedList$remove = F2(
+	function (uid, _p12) {
+		var _p13 = _p12;
+		var removeHelper = function (item) {
+			return !_elm_lang$core$Native_Utils.eq(
+				_user$project$TrackedList$tracker(item),
+				uid);
+		};
+		return A2(
+			_user$project$TrackedList$TrackedList,
+			_p13._0,
+			A2(_elm_lang$core$List$filter, removeHelper, _p13._1));
+	});
+var _user$project$TrackedList$Tracked = F2(
+	function (a, b) {
+		return {ctor: 'Tracked', _0: a, _1: b};
+	});
+var _user$project$TrackedList$Tracker = function (a) {
+	return {ctor: 'Tracker', _0: a};
+};
+var _user$project$TrackedList$empty = A2(
+	_user$project$TrackedList$TrackedList,
+	_user$project$TrackedList$Tracker(0),
+	{ctor: '[]'});
+var _user$project$TrackedList$push = F2(
+	function (item, _p14) {
+		var _p15 = _p14;
+		var _p16 = _p15._0._0;
+		return A2(
+			_user$project$TrackedList$TrackedList,
+			_user$project$TrackedList$Tracker(_p16 + 1),
+			{
+				ctor: '::',
+				_0: A2(
+					_user$project$TrackedList$Tracked,
+					_user$project$TrackedList$Tracker(_p16),
+					item),
+				_1: _p15._1
+			});
+	});
+var _user$project$TrackedList$tag = F2(
+	function (val, id) {
+		return A2(
+			_user$project$TrackedList$Tracked,
+			_user$project$TrackedList$Tracker(id),
+			val);
+	});
+var _user$project$TrackedList$fromList = function (list) {
+	return A2(
+		_user$project$TrackedList$TrackedList,
+		_user$project$TrackedList$Tracker(
+			_elm_lang$core$List$length(list)),
+		A2(
+			_elm_lang$core$List$indexedMap,
+			_elm_lang$core$Basics$flip(_user$project$TrackedList$tag),
+			list));
+};
