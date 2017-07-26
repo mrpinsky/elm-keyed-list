@@ -8,6 +8,8 @@ module KeyedList
         , fromList
         , toList
         , keyedMap
+        , isEmpty
+        , length
         , update
         , remove
         , filter
@@ -35,6 +37,11 @@ module KeyedList
 # Consume
 
 @docs toList, keyedMap
+
+
+# Common Helpers
+
+@docs isEmpty, length
 
 
 # Transform

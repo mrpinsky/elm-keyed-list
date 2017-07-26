@@ -70,6 +70,27 @@ empty =
         ]
 
 
+cons : Test
+cons =
+    describe "cons"
+        [ fuzz keyedListFuzzer "should increase length by 1" <|
+            \fuzzList ->
+                KeyedList.cons 9 fuzzList
+                    |> KeyedList.length
+                    |> Expect.equal (KeyedList.length fuzzList + 1)
+        , test "should work on empty KeyedLists" <|
+            \_ ->
+                KeyedList.cons 1 KeyedList.empty
+                    |> KeyedList.toList
+                    |> Expect.equal [ 1 ]
+        , fuzz keyedListFuzzer "should cons value onto beginning of list" <|
+            \fuzzList ->
+                KeyedList.cons 9 fuzzList
+                    |> toList
+                    |> Expect.equal (9 :: toList fuzzList)
+        ]
+
+
 push : Test
 push =
     describe "push"
@@ -83,11 +104,11 @@ push =
                 KeyedList.push 1 KeyedList.empty
                     |> KeyedList.toList
                     |> Expect.equal [ 1 ]
-        , fuzz keyedListFuzzer "should push value onto beginning of list" <|
+        , fuzz keyedListFuzzer "should push value onto end of list" <|
             \fuzzList ->
                 KeyedList.push 9 fuzzList
                     |> toList
-                    |> Expect.equal (9 :: toList fuzzList)
+                    |> Expect.equal (toList fuzzList ++ [ 9 ])
         ]
 
 
@@ -141,11 +162,56 @@ remove =
         ]
 
 
+update : Test
+update =
+    describe "update"
+        [ test "should modify items in non-empty lists" <|
+            \_ ->
+                let
+                    items =
+                        fromList [ 1, 2, 3 ]
+
+                    keys =
+                        takeKeys 2 items
+                            |> List.drop 1
+
+                    addTwo n =
+                        n + 2
+
+                    updater key =
+                        KeyedList.update key addTwo
+                in
+                    List.foldl updater items keys
+                        |> toList
+                        |> Expect.equal [ 1, 4, 3 ]
+        , test "should leave empty lists alone" <|
+            \_ ->
+                let
+                    items =
+                        fromList [ 1 ]
+
+                    keys =
+                        takeKeys 1 items
+
+                    addTwo n =
+                        n + 2
+
+                    updater key =
+                        KeyedList.update key addTwo
+                in
+                    List.foldl updater KeyedList.empty keys
+                        |> toList
+                        |> Expect.equal []
+        ]
+
+
 suite : Test
 suite =
     describe "KeyedList module"
         [ conversions
         , empty
+        , cons
         , push
         , remove
+        , update
         ]
