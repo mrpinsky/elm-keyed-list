@@ -6,6 +6,7 @@ module KeyedList
         , cons
         , push
         , fromList
+        , toList
         , keyedMap
         , update
         , remove
@@ -33,7 +34,7 @@ module KeyedList
 
 # Consume
 
-@docs keyedMap
+@docs toList, keyedMap
 
 
 # Transform
@@ -132,6 +133,17 @@ remove key (KeyedList nextKey items) =
     in
         List.filter removeHelper items
             |> KeyedList nextKey
+
+
+{-| Convert to a regular `List`. Useful if you need to convert to JSON.
+-}
+toList : KeyedList a -> List a
+toList (KeyedList _ items) =
+    let
+        keyedMapHelper (Keyed _ item) =
+            item
+    in
+        List.map keyedMapHelper items
 
 
 {-| Create a `List` out of items and their `Key`s. This is particularly useful in the `view` of a `Model` that contains a `KeyedList`.
