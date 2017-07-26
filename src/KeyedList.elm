@@ -3,31 +3,43 @@ module KeyedList
         ( KeyedList
         , Key
         , empty
-        , isEmpty
-        , length
+        , cons
         , push
-        , remove
         , fromList
         , toList
-        , map
-        , filter
         , keyedMap
+        , update
+        , remove
+        , filter
+        , map
         )
 
-{-| A library for lists of things you want to track. Kind of like Html.Keyed but for your data model.
+{-| A library for lists of things you want to track, kind of like Html.Keyed but for your data model.
 
 
-# Basics
+# Keyed Lists
 
-@docs empty, isEmpty, length, push, remove
-
-
-# Converting
-
-@ fromList, toList
+@docs KeyedList, Key
 
 
-#
+# Build
+
+@docs empty, cons, push, fromList
+
+
+# Consume
+
+@docs toList, keyedMap
+
+
+# Modify
+
+@docs update, remove
+
+
+# Transform
+
+@docs filter, map
 
 -}
 
@@ -49,6 +61,26 @@ empty =
     KeyedList (Key 0) []
 
 
+cons : a -> KeyedList a -> KeyedList a
+cons item (KeyedList key items) =
+    Keyed key item
+        :: items
+        |> KeyedList (next key)
+
+
+push : a -> KeyedList a -> KeyedList a
+push item (KeyedList key items) =
+    Keyed key item
+        |> List.singleton
+        |> (++) items
+        |> KeyedList (next key)
+
+
+next : Key -> Key
+next (Key key) =
+    Key (key + 1)
+
+
 fromList : List a -> KeyedList a
 fromList items =
     let
@@ -68,21 +100,13 @@ toList items =
         keyedMap toListHelper items
 
 
-isEmpty : KeyedList a -> Bool
-isEmpty (KeyedList _ items) =
-    List.isEmpty items
-
-
-length : KeyedList a -> Int
-length (KeyedList _ items) =
-    List.length items
-
-
-push : a -> KeyedList a -> KeyedList a
-push item (KeyedList key items) =
-    Keyed key item
-        :: items
-        |> KeyedList (next key)
+keyedMap : (Key -> a -> b) -> KeyedList a -> List b
+keyedMap fn (KeyedList _ items) =
+    let
+        keyedMapHelper (Keyed key item) =
+            fn key item
+    in
+        List.map keyedMapHelper items
 
 
 update : Key -> (a -> a) -> KeyedList a -> KeyedList a
@@ -108,9 +132,14 @@ remove key (KeyedList nextKey items) =
             |> KeyedList nextKey
 
 
-next : Key -> Key
-next (Key key) =
-    Key (key + 1)
+isEmpty : KeyedList a -> Bool
+isEmpty (KeyedList _ items) =
+    List.isEmpty items
+
+
+length : KeyedList a -> Int
+length (KeyedList _ items) =
+    List.length items
 
 
 map : (a -> b) -> KeyedList a -> KeyedList b
@@ -131,12 +160,3 @@ filter condition (KeyedList nextKey items) =
     in
         List.filter filterHelper items
             |> KeyedList nextKey
-
-
-keyedMap : (Key -> a -> b) -> KeyedList a -> List b
-keyedMap fn (KeyedList _ items) =
-    let
-        keyedMapHelper (Keyed key item) =
-            fn key item
-    in
-        List.map keyedMapHelper items
