@@ -6,8 +6,10 @@ module KeyedList
         , cons
         , push
         , fromList
+        , decoder
         , toList
         , keyedMap
+        , encode
         , isEmpty
         , length
         , update
@@ -15,6 +17,7 @@ module KeyedList
         , filter
         , map
         )
+
 
 {-| A library for lists of things you want to track, kind of like Html.Keyed but for your data model.
 
@@ -26,7 +29,7 @@ module KeyedList
 
 # Build
 
-@docs empty, cons, push, fromList
+@docs empty, cons, push, fromList, decoder
 
 
 # Modify
@@ -36,7 +39,7 @@ module KeyedList
 
 # Consume
 
-@docs toList, keyedMap
+@docs toList, keyedMap, encode
 
 
 # Common Helpers
@@ -49,6 +52,10 @@ module KeyedList
 @docs filter, map
 
 -}
+
+
+import Json.Encode as Encode
+import Json.Decode as Decode
 
 
 {-| A list that gives each element a locally unique [`Key`](#Key) for later modification or removal.
@@ -142,7 +149,7 @@ remove key (KeyedList nextKey items) =
             |> KeyedList nextKey
 
 
-{-| Convert to a regular `List`. Useful if you need to convert to JSON.
+{-| Convert to a regular `List`.
 -}
 toList : KeyedList a -> List a
 toList (KeyedList _ items) =
@@ -215,3 +222,44 @@ filter predicate (KeyedList nextKey items) =
     in
         List.filter filterHelper items
             |> KeyedList nextKey
+
+
+{-| Encode a `KeyedList` to JSON
+-}
+encode : (a -> Encode.Value) -> KeyedList a -> Encode.Value
+encode encodeItem (KeyedList (Key key) items) =
+    Encode.object
+        [ ( "nextKey", Encode.int key)
+        , ( "items", Encode.list <| List.map (encodeKeyed encodeItem) items )
+        ]
+
+
+encodeKeyed : (a -> Encode.Value) -> Keyed a -> Encode.Value
+encodeKeyed encodeItem (Keyed (Key key) item) =
+    Encode.object
+        [ ( "key", Encode.int key )
+        , ( "item", encodeItem item )
+        ]
+
+
+{-| Decode a `KeyedList` from JSON
+-}
+decoder : (Decode.Decoder a) -> Decode.Decoder (KeyedList a)
+decoder itemDecoder =
+    Decode.map2
+        KeyedList
+        (Decode.field "nextKey" keyDecoder)
+        (Decode.field "items" <| Decode.list (keyedDecoder itemDecoder))
+
+
+keyDecoder : Decode.Decoder Key
+keyDecoder =
+    Decode.map Key Decode.int
+
+
+
+keyedDecoder itemDecoder =
+    Decode.map2
+        Keyed
+        (Decode.field "key" keyDecoder)
+        (Decode.field "item" itemDecoder)
