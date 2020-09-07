@@ -1,23 +1,11 @@
-module KeyedList
-    exposing
-        ( KeyedList
-        , Key
-        , empty
-        , cons
-        , push
-        , fromList
-        , decoder
-        , toList
-        , keyedMap
-        , encode
-        , isEmpty
-        , length
-        , update
-        , remove
-        , filter
-        , map
-        )
-
+module KeyedList exposing
+    ( KeyedList, Key
+    , empty, cons, push, fromList, decoder
+    , update, remove
+    , toList, keyedMap, encode
+    , isEmpty, length
+    , filter, map
+    )
 
 {-| A library for lists of things you want to track, kind of like Html.Keyed but for your data model.
 
@@ -53,9 +41,8 @@ module KeyedList
 
 -}
 
-
-import Json.Encode as Encode
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 {-| A list that gives each element a locally unique [`Key`](#Key) for later modification or removal.
@@ -118,8 +105,8 @@ fromList items =
         fromListHelper index item =
             Keyed (Key index) item
     in
-        List.indexedMap fromListHelper items
-            |> KeyedList (Key <| List.length items)
+    List.indexedMap fromListHelper items
+        |> KeyedList (Key <| List.length items)
 
 
 {-| Update the value of a list for a specific `Key` with a given function.
@@ -130,11 +117,12 @@ update key fn (KeyedList nextKey items) =
         updateHelper (Keyed k val) =
             if k == key then
                 Keyed k (fn val)
+
             else
                 Keyed k val
     in
-        List.map updateHelper items
-            |> KeyedList nextKey
+    List.map updateHelper items
+        |> KeyedList nextKey
 
 
 {-| Remove an item from a list by `Key`. If the `Key` is not found, no changes are made.
@@ -145,8 +133,8 @@ remove key (KeyedList nextKey items) =
         removeHelper (Keyed k _) =
             k /= key
     in
-        List.filter removeHelper items
-            |> KeyedList nextKey
+    List.filter removeHelper items
+        |> KeyedList nextKey
 
 
 {-| Convert to a regular `List`.
@@ -157,7 +145,7 @@ toList (KeyedList _ items) =
         keyedMapHelper (Keyed _ item) =
             item
     in
-        List.map keyedMapHelper items
+    List.map keyedMapHelper items
 
 
 {-| Create a `List` out of items and their `Key`s. This is particularly useful in the `view` of a `Model` that contains a `KeyedList`.
@@ -183,7 +171,7 @@ keyedMap fn (KeyedList _ items) =
         keyedMapHelper (Keyed key item) =
             fn key item
     in
-        List.map keyedMapHelper items
+    List.map keyedMapHelper items
 
 
 {-| Check if a list is currently empty
@@ -208,8 +196,8 @@ map fn (KeyedList nextKey items) =
         mapHelper (Keyed key item) =
             Keyed key <| fn item
     in
-        List.map mapHelper items
-            |> KeyedList nextKey
+    List.map mapHelper items
+        |> KeyedList nextKey
 
 
 {-| Keep only elements that satisfy the predicate, preserving `Key`s.
@@ -220,8 +208,8 @@ filter predicate (KeyedList nextKey items) =
         filterHelper (Keyed _ item) =
             predicate item
     in
-        List.filter filterHelper items
-            |> KeyedList nextKey
+    List.filter filterHelper items
+        |> KeyedList nextKey
 
 
 {-| Encode a `KeyedList` to JSON
@@ -229,8 +217,8 @@ filter predicate (KeyedList nextKey items) =
 encode : (a -> Encode.Value) -> KeyedList a -> Encode.Value
 encode encodeItem (KeyedList (Key key) items) =
     Encode.object
-        [ ( "nextKey", Encode.int key)
-        , ( "items", Encode.list <| List.map (encodeKeyed encodeItem) items )
+        [ ( "nextKey", Encode.int key )
+        , ( "items", Encode.list (encodeKeyed encodeItem) items )
         ]
 
 
@@ -244,7 +232,7 @@ encodeKeyed encodeItem (Keyed (Key key) item) =
 
 {-| Decode a `KeyedList` from JSON
 -}
-decoder : (Decode.Decoder a) -> Decode.Decoder (KeyedList a)
+decoder : Decode.Decoder a -> Decode.Decoder (KeyedList a)
 decoder itemDecoder =
     Decode.map2
         KeyedList
@@ -255,7 +243,6 @@ decoder itemDecoder =
 keyDecoder : Decode.Decoder Key
 keyDecoder =
     Decode.map Key Decode.int
-
 
 
 keyedDecoder itemDecoder =

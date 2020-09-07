@@ -1,9 +1,9 @@
-module Tests exposing (..)
+module Tests exposing (cons, conversions, empty, emptyTestFailureMsg, keyedListFuzzer, push, remove, suite, takeKeys, update)
 
 import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer, list, int, string)
-import Test exposing (..)
+import Fuzz exposing (Fuzzer, int, list, string)
 import KeyedList exposing (..)
+import Test exposing (..)
 
 
 conversions : Test
@@ -23,7 +23,7 @@ conversions =
         , test "empty Lists should become empty KeyedLists" <|
             \_ ->
                 fromList []
-                    |> isEmpty
+                    |> KeyedList.isEmpty
                     |> Expect.true "KeyedList was not empty"
         ]
 
@@ -34,22 +34,23 @@ keyedListFuzzer =
 
 
 emptyTestFailureMsg : Bool -> Int -> String
-emptyTestFailureMsg empty len =
+emptyTestFailureMsg isEmpty len =
     let
         lengthString =
-            len |> toString
+            String.fromInt len
 
         isEmptyQualifier =
-            if empty then
+            if isEmpty then
                 ""
+
             else
                 "not "
     in
-        "length == "
-            ++ lengthString
-            ++ " but list is "
-            ++ isEmptyQualifier
-            ++ "empty"
+    "length == "
+        ++ lengthString
+        ++ " but list is "
+        ++ isEmptyQualifier
+        ++ "empty"
 
 
 empty : Test
@@ -58,15 +59,15 @@ empty =
         [ fuzz keyedListFuzzer "should be empty iff length = 0" <|
             \fuzzList ->
                 let
-                    empty =
-                        isEmpty fuzzList
+                    isEmpty =
+                        KeyedList.isEmpty fuzzList
 
                     len =
                         length fuzzList
                 in
-                    (empty && len == 0)
-                        || (not empty && len > 0)
-                        |> Expect.true (emptyTestFailureMsg empty len)
+                (isEmpty && len == 0)
+                    || (not isEmpty && len > 0)
+                    |> Expect.true (emptyTestFailureMsg isEmpty len)
         ]
 
 
@@ -118,8 +119,8 @@ takeKeys n items =
         keyHelper key _ =
             key
     in
-        KeyedList.keyedMap keyHelper items
-            |> List.take n
+    KeyedList.keyedMap keyHelper items
+        |> List.take n
 
 
 remove : Test
@@ -134,10 +135,10 @@ remove =
                     keys =
                         takeKeys 1 items
                 in
-                    List.foldl KeyedList.remove items keys
-                        |> toList
-                        |> List.length
-                        |> Expect.equal 1
+                List.foldl KeyedList.remove items keys
+                    |> toList
+                    |> List.length
+                    |> Expect.equal 1
         , test "should remove items from singleton lists" <|
             \_ ->
                 let
@@ -147,18 +148,18 @@ remove =
                     keys =
                         takeKeys 1 items
                 in
-                    List.foldl KeyedList.remove items keys
-                        |> toList
-                        |> Expect.equal []
+                List.foldl KeyedList.remove items keys
+                    |> toList
+                    |> Expect.equal []
         , test "should leave empty lists unchanged" <|
             \_ ->
                 let
                     keys =
                         takeKeys 1 <| fromList [ 1 ]
                 in
-                    List.foldl KeyedList.remove KeyedList.empty keys
-                        |> toList
-                        |> Expect.equal []
+                List.foldl KeyedList.remove KeyedList.empty keys
+                    |> toList
+                    |> Expect.equal []
         ]
 
 
@@ -181,9 +182,9 @@ update =
                     updater key =
                         KeyedList.update key addTwo
                 in
-                    List.foldl updater items keys
-                        |> toList
-                        |> Expect.equal [ 1, 4, 3 ]
+                List.foldl updater items keys
+                    |> toList
+                    |> Expect.equal [ 1, 4, 3 ]
         , test "should leave empty lists alone" <|
             \_ ->
                 let
@@ -199,9 +200,9 @@ update =
                     updater key =
                         KeyedList.update key addTwo
                 in
-                    List.foldl updater KeyedList.empty keys
-                        |> toList
-                        |> Expect.equal []
+                List.foldl updater KeyedList.empty keys
+                    |> toList
+                    |> Expect.equal []
         ]
 
 
