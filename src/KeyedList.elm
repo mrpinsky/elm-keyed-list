@@ -1,6 +1,6 @@
 module KeyedList exposing
     ( KeyedList, Key
-    , empty, cons, push, fromList, decoder
+    , empty, cons, push, push_, fromList, decoder
     , update, remove
     , toList, keyedMap, encode
     , isEmpty, length
@@ -17,7 +17,7 @@ module KeyedList exposing
 
 # Build
 
-@docs empty, cons, push, fromList, decoder
+@docs empty, cons, push, push_, fromList, decoder
 
 
 # Modify
@@ -88,6 +88,15 @@ push item (KeyedList key items) =
         |> List.singleton
         |> (++) items
         |> KeyedList (next key)
+
+
+{-| Same as `push`, but also returns the key for the new item.
+-}
+push_ : a -> KeyedList a -> ( Key, KeyedList a )
+push_ item (KeyedList key items) =
+    ( next key
+    , push item (KeyedList key items)
+    )
 
 
 {-| Internal utility for push and cons. Gives the next key.
